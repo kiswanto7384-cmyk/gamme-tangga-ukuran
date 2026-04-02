@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tangga Pintar SDN 169 - Liter Edition</title>
+    <title>Tangga Pintar SDN 169 - Final Solution</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background: linear-gradient(to bottom, #7dd3fc, #f0f9ff); min-height: 100vh; font-family: sans-serif; overflow-x: hidden; }
@@ -21,8 +21,8 @@
         #kodok { font-size: 45px; position: absolute; z-index: 50; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .shake { animation: shake 0.3s; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
-        .score-up { color: #22c55e; animation: bounce 0.5s; }
-        .score-down { color: #ef4444; animation: shake 0.3s; }
+        .score-anim { animation: bounce 0.5s; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
     </style>
 </head>
 <body class="p-4" id="main-body">
@@ -31,13 +31,13 @@
     <div class="max-w-6xl mx-auto bg-white/95 backdrop-blur p-6 rounded-3xl shadow-xl border-4 border-white mb-6">
         <div class="flex flex-wrap justify-between items-center gap-4">
             <div>
-                <h1 class="text-2xl font-black text-blue-900">🐸 TANGGA PINTAR SDN 169</h1>
-                <div id="petunjuk-umum" class="text-xs font-bold text-blue-500 mt-1 bg-blue-50 px-3 py-1 rounded-full inline-block">
-                    ✨ Petunjuk: Hubungkan satuan Liter dengan satuan Kubik!
-                </div>
+                <h1 class="text-2xl font-black text-blue-900 uppercase">🐸 Tangga Pintar SDN 169</h1>
+                <p id="msg" class="text-xs font-bold text-blue-500 mt-1 bg-blue-50 px-3 py-1 rounded-full inline-block animate-pulse">
+                    Memuat Tantangan...
+                </p>
             </div>
             <div class="flex items-center gap-4">
-                <div class="bg-blue-900 text-white px-6 py-3 rounded-2xl shadow-inner border-2 border-blue-700">
+                <div class="bg-blue-900 text-white px-6 py-3 rounded-2xl border-2 border-blue-700 shadow-inner">
                     <p class="text-[10px] font-bold opacity-70 text-center uppercase">Skor</p>
                     <p id="skor" class="text-3xl font-black text-center">0</p>
                 </div>
@@ -53,13 +53,13 @@
             <button onclick="setMode('liter')" class="bg-cyan-100 hover:bg-cyan-200 px-4 py-2 rounded-xl font-bold text-[10px] transition border-b-4 border-cyan-400 text-cyan-700">💧 LITER & KUBIK</button>
         </div>
 
-        <div id="custom-menu" class="hidden mt-4 p-5 bg-orange-50 border-4 border-orange-200 rounded-[2rem] shadow-inner">
+        <div id="custom-menu" class="hidden mt-4 p-5 bg-orange-50 border-4 border-orange-200 rounded-[2rem]">
             <h3 class="text-xs font-black text-orange-700 mb-3 uppercase">🛠️ Rancang Latihan Mandiri</h3>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <input type="number" id="c-val" placeholder="Angka" class="p-3 rounded-xl border-2 border-orange-200 font-bold">
                 <select id="c-from" class="p-3 rounded-xl border-2 border-orange-200 font-bold uppercase"></select>
                 <select id="c-to" class="p-3 rounded-xl border-2 border-orange-200 font-bold uppercase"></select>
-                <button onclick="generateCustom()" class="bg-orange-600 text-white font-black rounded-xl hover:bg-orange-700 transition py-3 text-xs">MULAI UJI</button>
+                <button onclick="generateCustom()" class="bg-orange-600 text-white font-black rounded-xl py-3 text-xs uppercase shadow-md">Uji Sekarang</button>
             </div>
         </div>
     </div>
@@ -70,12 +70,11 @@
             <div id="list-tangga" class="mt-5"></div>
         </div>
 
-        <div class="bg-indigo-900 p-8 rounded-[3rem] text-white shadow-2xl flex flex-col justify-center border-b-[12px] border-indigo-950 min-h-[400px]">
-            <p class="text-indigo-300 font-black text-[10px] uppercase mb-2 tracking-widest text-center">--- Misi Matematika ---</p>
-            <h2 id="teks-soal" class="text-4xl font-black text-yellow-300 italic mb-10 text-center leading-tight">Memuat...</h2>
+        <div class="bg-indigo-900 p-8 rounded-[3rem] text-white shadow-2xl flex flex-col justify-center border-b-[12px] border-indigo-950 min-h-[420px]">
+            <h2 id="teks-soal" class="text-4xl font-black text-yellow-300 italic mb-10 text-center leading-tight drop-shadow-lg">Memuat...</h2>
             <div id="opsi" class="grid gap-4"></div>
-            <div id="msg-container" class="mt-10 p-4 rounded-2xl bg-white/10 text-center">
-                <p id="msg" class="text-sm font-black text-indigo-200 uppercase animate-pulse">Pilih tangga tujuan!</p>
+            <div class="mt-10 p-4 rounded-2xl bg-white/10 text-center border border-white/20">
+                <p id="petunjuk-tugas" class="text-sm font-black text-indigo-200 uppercase tracking-widest">Lompatlah ke tangga tujuan!</p>
             </div>
         </div>
     </div>
@@ -89,15 +88,7 @@
             liter: { units: ['kl','hl','dal','l','dl','cl','ml'], p: 10 }
         };
         
-        // Jembatan Konversi Liter ke Kubik
-        const jembatan = {
-            'l': 'dm³',
-            'ml': 'cm³',
-            'kl': 'm³',
-            'dm³': 'l',
-            'cm³': 'ml',
-            'm³': 'kl'
-        };
+        const jembatan = { 'l': 'dm³', 'ml': 'cm³', 'kl': 'm³', 'dm³': 'l', 'cm³': 'ml', 'm³': 'kl' };
 
         let mode = 'panjang', skor = 0, soal = {};
         const audio = new (window.AudioContext || window.webkitAudioContext)();
@@ -112,11 +103,7 @@
             } catch(e) {}
         }
 
-        function toggleCustom() {
-            const menu = document.getElementById('custom-menu');
-            menu.classList.toggle('hidden');
-            updateSelects();
-        }
+        function toggleCustom() { document.getElementById('custom-menu').classList.toggle('hidden'); updateSelects(); }
 
         function updateSelects() {
             const f = document.getElementById('c-from'), t = document.getElementById('c-to');
@@ -125,9 +112,7 @@
                 f.innerHTML += `<option value="${u}">${u.toUpperCase()}</option>`;
                 t.innerHTML += `<option value="${u}">${u.toUpperCase()}</option>`;
             });
-            if(mode === 'liter') {
-                ['m³','dm³','cm³'].forEach(u => t.innerHTML += `<option value="${u}">${u.toUpperCase()}</option>`);
-            }
+            if(mode === 'liter') ['m³','dm³','cm³'].forEach(u => t.innerHTML += `<option value="${u}">${u.toUpperCase()}</option>`);
         }
 
         function setMode(m) { mode = m; render(); buatSoal(); updateSelects(); }
@@ -136,7 +121,7 @@
             const list = document.getElementById('list-tangga'); list.innerHTML = "";
             config[mode].units.forEach((u, i) => {
                 const d = document.createElement('div');
-                d.className = 'step'; d.style.marginLeft = (i * 40) + "px";
+                d.className = 'step'; d.style.marginLeft = (i * 42) + "px";
                 d.id = 's-' + u; d.innerText = u.toUpperCase();
                 d.onclick = () => jump(u);
                 list.appendChild(d);
@@ -147,47 +132,38 @@
             playSound(440, 0.05);
             const s = document.getElementById('s-'+u), k = document.getElementById('kodok');
             if(!s) return;
-            k.style.top = (s.offsetTop - 40) + "px";
-            k.style.left = (s.offsetLeft + 45) + "px";
+            k.style.top = (s.offsetTop - 40) + "px"; k.style.left = (s.offsetLeft + 45) + "px";
             
             if(u === soal.t_tangga) { 
-                document.getElementById('msg').innerText = "✅ TEPAT! SEKARANG PILIH NILAINYA:"; 
+                document.getElementById('petunjuk-tugas').innerText = "✅ TEPAT! PILIH JAWABAN DI ATAS:"; 
                 showOpsi(); 
             } else { 
-                document.getElementById('msg').innerText = "LOMPAT KE TANGGA " + soal.t_tangga.toUpperCase() + "!"; 
+                document.getElementById('petunjuk-tugas').innerText = "LOMPAT KE TANGGA " + soal.t_tangga.toUpperCase() + "!"; 
                 document.getElementById('opsi').innerHTML = ""; 
             }
         }
 
         function buatSoal() {
             const u = config[mode].units;
-            let i1 = Math.floor(Math.random()*u.length), i2 = Math.floor(Math.random()*u.length);
-            while(i1 === i2) i2 = Math.floor(Math.random()*u.length);
+            // Batasi jarak maksimal 3 tangga agar angka tidak terlalu kecil/besar
+            let i1 = Math.floor(Math.random()*u.length);
+            let jarak = Math.floor(Math.random() * 7) - 3; // -3 sampai 3
+            let i2 = Math.max(0, Math.min(u.length - 1, i1 + (jarak === 0 ? 1 : jarak)));
             
-            let n = [1, 2, 5, 10][Math.floor(Math.random()*4)];
-            let f = u[i1], t = u[i2];
-            let t_tampilan = t; // Yang tampil di soal (bisa dm3)
-            let t_tangga = t;    // Yang harus dipijak (tetap tangga liter)
+            let n = [1, 2, 5, 10, 25, 50][Math.floor(Math.random()*6)];
+            let f = u[i1], t = u[i2], t_tampilan = t, t_tangga = t;
 
-            // Spesial Mode Liter: 30% peluang muncul soal konversi ke Kubik
-            if(mode === 'liter' && Math.random() > 0.7) {
-                if(jembatan[t]) {
-                    t_tampilan = jembatan[t];
-                    t_tangga = t; 
-                }
+            if(mode === 'liter' && Math.random() > 0.6) {
+                if(jembatan[t]) { t_tampilan = jembatan[t]; t_tangga = t; }
             }
-
             setSoalAktif(n, f, t_tampilan, t_tangga);
         }
 
         function setSoalAktif(n, f, t_tampilan, t_tangga) {
             const u = config[mode].units;
-            // Hitung jawaban berdasarkan tangga asli
-            const target_murni = t_tangga; 
-            const ans = n * Math.pow(config[mode].p, u.indexOf(target_murni) - u.indexOf(f));
-            
+            const ans = n * Math.pow(config[mode].p, u.indexOf(t_tangga) - u.indexOf(f));
             soal = { f, t_tampilan, t_tangga, ans };
-            document.getElementById('teks-soal').innerHTML = `${n} ${f.toUpperCase()} = <br>... ${t_tampilan.toUpperCase()}?`;
+            document.getElementById('teks-soal').innerHTML = `${n.toLocaleString('id-ID')} ${f.toUpperCase()} = <br>... ${t_tampilan.toUpperCase()}?`;
             document.getElementById('opsi').innerHTML = "";
             jump(f);
             document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -197,8 +173,14 @@
         function updateSkor(poin) {
             skor += poin; if(skor < 0) skor = 0;
             const el = document.getElementById('skor'); el.innerText = skor;
-            el.className = poin > 0 ? "text-3xl font-black text-center score-up" : "text-3xl font-black text-center score-down";
-            setTimeout(() => { el.className = "text-3xl font-black text-center"; }, 500);
+            el.classList.add('score-anim'); setTimeout(()=>el.classList.remove('score-anim'), 500);
+        }
+
+        function formatAngka(num) {
+            if (num >= 0.000001) return num.toLocaleString('id-ID', { maximumFractionDigits: 10 });
+            // Untuk angka sangat kecil, gunakan toFixed agar tidak muncul '0' atau notasi ilmiah 'e'
+            let str = num.toFixed(20).replace(/\.?0+$/, "");
+            return str;
         }
 
         function showOpsi() {
@@ -206,10 +188,10 @@
             let pils = [soal.ans, soal.ans*10, soal.ans/10].sort(()=>Math.random()-0.5);
             pils.forEach(p => {
                 const b = document.createElement('button');
-                b.className = "bg-white text-indigo-900 p-5 rounded-2xl font-black text-2xl hover:bg-yellow-400 shadow-lg border-b-4 border-slate-300";
-                b.innerText = p.toLocaleString('id-ID');
+                b.className = "bg-white text-indigo-900 p-5 rounded-2xl font-black text-xl hover:bg-yellow-400 shadow-lg border-b-4 border-slate-300";
+                b.innerText = formatAngka(p);
                 b.onclick = () => {
-                    if(p === soal.ans) { 
+                    if(Math.abs(p - soal.ans) < 0.00000000001) { 
                         playSound(880, 0.2); updateSkor(10);
                         b.classList.add('bg-green-500', 'text-white');
                         setTimeout(buatSoal, 800); 
@@ -229,13 +211,8 @@
             const f = document.getElementById('c-from').value;
             const t = document.getElementById('c-to').value;
             if(!n || f === t) return alert("Pilih satuan berbeda!");
-            
             let t_tangga = t;
-            // Jika t adalah m3/dm3/cm3, arahkan tangga ke kl/l/ml
-            for (let key in jembatan) {
-                if (jembatan[key] === t) t_tangga = key;
-            }
-            
+            for (let key in jembatan) { if (jembatan[key] === t) t_tangga = key; }
             setSoalAktif(parseFloat(n), f, t, t_tangga);
             document.getElementById('custom-menu').classList.add('hidden');
         }
