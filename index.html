@@ -2,333 +2,93 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Tangga Sakti 3D - SDN 169</title>
+    <title>Tangga Pintar SDN 169</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* --- BACKGROUND MENANTANG (HUTAN MALAM) --- */
-        body { 
-            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
-            min-height: 100vh; overflow-x: hidden; position: relative; color: white;
-            font-family: 'Segoe UI', sans-serif;
-        }
-        
-        /* Efek Kabut Lantai Hutan */
-        body::after {
-            content: ''; position: fixed; bottom: -100px; left: 0; width: 100%; height: 300px;
-            background: radial-gradient(circle at center, rgba(56, 189, 248, 0.15) 0%, rgba(15, 23, 42, 0) 70%);
-            filter: blur(50px); z-index: -1; pointer-events: none;
-        }
-
-        /* Kunang-kunang melayang */
-        .firefly {
-            position: fixed; width: 4px; height: 4px; background: #fef08a; border-radius: 50%;
-            box-shadow: 0 0 10px #facc15, 0 0 20px #facc15; pointer-events: none; opacity: 0; z-index: -1;
-            animation: fly 10s infinite ease-in-out;
-        }
-        @keyframes fly {
-            0%, 100% { transform: translate(0, 0); opacity: 0; }
-            10% { opacity: 0.8; }
-            50% { transform: translate(100px, -100px); opacity: 0.4; }
-            90% { opacity: 0.8; }
-        }
-
-        /* --- TANGGA ESTETIK (BATU PERMATA GLOW) --- */
-        .step-container { perspective: 1500px; margin-top: 60px; }
+        body { background: linear-gradient(to bottom, #bae6fd, #e0f2fe); min-height: 100vh; font-family: sans-serif; }
         .step { 
-            width: 170px; height: 40px; 
-            background: rgba(255, 255, 255, 0.05); /* Semi transparan */
-            backdrop-filter: blur(5px); /* Efek kaca blur */
-            color: rgba(255, 255, 255, 0.8);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 900; border-radius: 8px; position: relative;
-            transform: rotateX(30deg) rotateY(-15deg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
-            cursor: pointer; margin-bottom: 12px; font-size: 14px;
-            letter-spacing: 1px;
+            background: white; border: 3px solid #3b82f6; color: #1e3a8a;
+            width: 180px; height: 50px; display: flex; align-items: center; justify-content: center;
+            font-weight: 900; border-radius: 12px; margin-bottom: 15px; cursor: pointer;
+            box-shadow: 0 8px 0 #1e40af; transform: rotateX(15deg);
         }
-        
-        /* Sisi samping tangga (efek ketebalan) */
-        .step::before {
-            content: ''; position: absolute; left: -15px; top: 8px; width: 15px; height: 100%;
-            background: rgba(0, 0, 0, 0.3); transform: skewY(-45deg); border-radius: 4px 0 0 4px;
-        }
-
-        /* Warna Glow berbeda per mode (default indigo) */
-        .step { box-shadow: -5px 5px 15px rgba(99, 102, 241, 0.2); }
-        .step:hover { 
-            transform: rotateX(30deg) rotateY(-15deg) translate(10px, -10px); 
-            background: rgba(99, 102, 241, 0.3);
-            color: white;
-            box-shadow: -10px 10px 30px rgba(99, 102, 241, 0.6);
-            border-color: rgba(165, 180, 252, 0.5);
-        }
-        .step.active { 
-            background: rgba(34, 197, 94, 0.4); 
-            box-shadow: -10px 10px 40px rgba(34, 197, 94, 0.8);
-            border-color: #86efac; color: white;
-        }
-
-        /* Kodok Sakti */
-        #kodok { 
-            font-size: 50px; position: absolute; z-index: 100;
-            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
-            pointer-events: none;
-        }
-
-        /* FX */
-        .particle { position: fixed; width: 8px; height: 8px; pointer-events: none; z-index: 200; border-radius: 50%; }
-        @keyframes fall { to { transform: translateY(100vh) scale(0); opacity: 0; } }
-        .shake { animation: shakeAnim 0.3s ease-in-out; }
-        @keyframes shakeAnim { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-15px); } 75% { transform: translateX(15px); } }
+        .step:hover { background: #eff6ff; }
+        .step.active { background: #fbbf24; border-color: #b45309; }
+        #kodok { position: absolute; font-size: 50px; transition: all 0.5s; z-index: 10; }
     </style>
 </head>
-<body class="p-4" id="game-body">
-
-    <div class="firefly" style="top:20vh; left:10vw; animation-delay: 0s"></div>
-    <div class="firefly" style="top:50vh; left:80vw; animation-delay: 2s"></div>
-    <div class="firefly" style="top:80vh; left:30vw; animation-delay: 4s"></div>
-    <div class="firefly" style="top:10vh; left:60vw; animation-delay: 6s"></div>
-
-    <div class="max-w-7xl mx-auto position-relative z-10">
-        <div class="bg-white/5 backdrop-blur-lg rounded-3xl p-5 mb-6 border border-white/10 flex justify-between items-center shadow-2xl">
-            <div class="flex items-center gap-4">
-                <span class="text-5xl">🦎</span>
-                <div>
-                    <h1 class="text-2xl font-black text-white tracking-wider">TANGGA SAKTI 3D</h1>
-                    <p class="text-[10px] font-bold text-sky-300 uppercase tracking-widest">Petualangan Matematika SDN 169</p>
-                </div>
-            </div>
-            <div class="flex gap-4 items-center">
-                <div class="text-center bg-black/30 px-5 py-2 rounded-2xl border border-white/10">
-                    <p class="text-[9px] font-black text-slate-400">SKOR</p>
-                    <p id="skor" class="text-3xl font-black text-emerald-400">0</p>
-                </div>
-                <button onclick="switchTab('custom')" id="mode-label" class="bg-sky-500 text-white px-5 py-3 rounded-2xl text-xs font-black hover:bg-sky-600 transition shadow-lg">⚙️ MODE LATIHAN</button>
-            </div>
+<body class="p-6">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-2xl border-4 border-blue-200">
+        <h1 class="text-3xl font-black text-blue-900 text-center mb-6">🐸 TANGGA PINTAR SDN 169</h1>
+        
+        <div class="flex gap-4 justify-center mb-10">
+            <button onclick="setMode('panjang')" class="bg-sky-500 text-white px-6 py-2 rounded-full font-bold">📏 Panjang</button>
+            <button onclick="setMode('berat')" class="bg-green-500 text-white px-6 py-2 rounded-full font-bold">⚖️ Berat</button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-8 bg-black/20 backdrop-blur-sm rounded-[3rem] p-12 relative min-h-[650px] border border-white/5 overflow-hidden shadow-inner">
-                <div class="absolute -top-5 -right-10 text-6xl opacity-20 rotate-12 pointer-events-none">🌿</div>
-                <div class="absolute top-20 -left-10 text-6xl opacity-10 -rotate-12 pointer-events-none">🍃</div>
-                
-                <div class="step-container" id="step-list">
-                    <div id="kodok">🐸</div>
-                </div>
+        <div class="flex gap-10 justify-center">
+            <div id="game-area" class="relative">
+                <div id="kodok">🐸</div>
+                <div id="steps"></div>
             </div>
-
-            <div class="lg:col-span-4 space-y-4">
-                <div class="bg-white/5 backdrop-blur-xl p-8 rounded-[2.5rem] text-white min-h-[380px] flex flex-col justify-center border border-white/10 shadow-2xl">
-                    <div id="question-area">
-                        <p class="text-sky-300 text-[10px] font-black uppercase mb-2 tracking-widest">Tantangan:</p>
-                        <h2 id="teks-soal" class="text-3xl font-black italic text-yellow-300 leading-tight">Memuat...</h2>
-                        <div id="opsi-jawaban" class="grid grid-cols-1 gap-3 mt-10"></div>
-                        <p id="hint" class="text-center text-[10px] mt-10 text-sky-200 font-bold animate-pulse uppercase tracking-widest">Lompat ke Tangga Tujuan!</p>
-                    </div>
-                    
-                    <div id="custom-form" class="hidden space-y-4">
-                        <h3 class="font-black text-yellow-300 text-xl flex items-center gap-2">🛠️ <span class="text-white">RANCANG SOAL</span></h3>
-                        <input type="number" id="c-val" placeholder="Masukkan Angka" class="w-full p-4 rounded-xl bg-black/50 border border-white/10 text-white font-bold placeholder:text-slate-500">
-                        <div class="grid grid-cols-2 gap-2">
-                            <select id="c-from" class="p-3 rounded-xl bg-black/50 border border-white/10 text-white font-bold text-xs uppercase"></select>
-                            <select id="c-to" class="p-3 rounded-xl bg-black/50 border border-white/10 text-white font-bold text-xs uppercase"></select>
-                        </div>
-                        <button onclick="generateCustom()" class="w-full bg-emerald-500 p-4 rounded-xl font-black uppercase text-sm shadow-lg hover:bg-emerald-600 transition">Uji Sekarang!</button>
-                        <button onclick="switchTab('play')" class="w-full text-xs font-bold text-slate-400 mt-2">Kembali ke Petualangan</button>
-                    </div>
-                </div>
-
-                <div class="bg-white/5 backdrop-blur-sm p-4 rounded-3xl border border-white/10 shadow-lg grid grid-cols-2 gap-2">
-                    <button onclick="setMode('panjang')" id="tab-panjang" class="kat-btn p-3 rounded-xl bg-black/20 font-bold text-[10px] uppercase border border-white/5 hover:border-sky-500/50 transition text-sky-300 active-kat">Panjang (m)</button>
-                    <button onclick="setMode('berat')" id="tab-berat" class="kat-btn p-3 rounded-xl bg-black/20 font-bold text-[10px] uppercase border border-white/5 hover:border-emerald-500/50 transition text-emerald-300">Berat (g)</button>
-                    <button onclick="setMode('luas')" id="tab-luas" class="kat-btn p-3 rounded-xl bg-black/20 font-bold text-[10px] uppercase border border-white/5 hover:border-orange-500/50 transition text-orange-300">Luas (m²)</button>
-                    <button onclick="setMode('volume')" id="tab-volume" class="kat-btn p-3 rounded-xl bg-black/20 font-bold text-[10px] uppercase border border-white/5 hover:border-purple-500/50 transition text-purple-300">Volume (m³)</button>
-                </div>
+            <div class="bg-blue-900 p-8 rounded-3xl text-white w-80">
+                <h2 id="soal" class="text-2xl font-bold mb-6">Memuat...</h2>
+                <div id="pilihan" class="grid grid-cols-1 gap-3"></div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- LOGIKA SUARA (WEB AUDIO API) ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playSound(type) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (type === 'jump') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(500, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'correct') {
-                [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
-                    const o = audioCtx.createOscillator();
-                    const g = audioCtx.createGain();
-                    o.connect(g); g.connect(audioCtx.destination);
-                    o.type = 'triangle';
-                    o.frequency.setValueAtTime(f, audioCtx.currentTime + (i * 0.08));
-                    g.gain.setValueAtTime(0.05, audioCtx.currentTime + (i * 0.08));
-                    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (i * 0.08) + 0.1);
-                    o.start(audioCtx.currentTime + (i * 0.08));
-                    o.stop(audioCtx.currentTime + (i * 0.08) + 0.1);
-                });
-            } else if (type === 'wrong') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(100, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(30, audioCtx.currentTime + 0.4);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-            }
-        }
-
-        // --- LOGIKA GAME ---
         const config = {
-            panjang: { units: ['km','hm','dam','m','dm','cm','mm'], power: 10, glow: 'rgba(56, 189, 248, 0.6)' },
-            berat: { units: ['kg','hg','dag','g','dg','cg','mg'], power: 10, glow: 'rgba(52, 211, 153, 0.6)' },
-            luas: { units: ['km²','hm²','dam²','m²','dm²','cm²','mm²'], power: 100, glow: 'rgba(251, 146, 60, 0.6)' },
-            volume: { units: ['km³','hm³','dam³','m³','dm³','cm³','mm³'], power: 1000, glow: 'rgba(192, 132, 252, 0.6)' }
+            panjang: { units: ['km','hm','dam','m','dm','cm','mm'], p: 10 },
+            berat: { units: ['kg','hg','dag','g','dg','cg','mg'], p: 10 }
         };
-
-        let mode = 'panjang';
-        let skor = 0;
-        let soal = {};
+        let mode = 'panjang', soal = {};
 
         function setMode(m) {
-            mode = m;
-            document.querySelectorAll('.kat-btn').forEach(b => b.classList.remove('active-kat'));
-            document.getElementById('tab-'+m).classList.add('active-kat');
-            renderTangga();
-            updateSelects();
-            mulaiNormal();
+            mode = m; renderSteps(); buatSoal();
         }
 
-        function renderTangga() {
-            const list = document.getElementById('step-list');
-            const kodok = document.getElementById('kodok');
-            list.innerHTML = ""; list.appendChild(kodok);
-            const modeInfo = config[mode];
-
-            modeInfo.units.forEach((u, i) => {
+        function renderSteps() {
+            const container = document.getElementById('steps');
+            container.innerHTML = "";
+            config[mode].units.forEach((u, i) => {
                 const d = document.createElement('div');
-                d.className = 'step';
-                d.style.marginLeft = (i * 35) + "px";
-                d.id = "step-" + u;
-                d.innerHTML = u.toUpperCase();
-                d.onclick = () => jumpTo(u);
-                
-                // Set custom glow per mode
-                d.style.boxShadow = `-5px 5px 15px ${modeInfo.glow.replace('0.6', '0.1')}`;
-                d.onmouseover = () => d.style.boxShadow = `-10px 10px 30px ${modeInfo.glow}`;
-                d.onmouseout = () => d.style.boxShadow = `-5px 5px 15px ${modeInfo.glow.replace('0.6', '0.1')}`;
-
-                list.appendChild(d);
+                d.className = 'step'; d.id = 's-' + u; d.innerText = u.toUpperCase();
+                d.onclick = () => jump(u);
+                container.appendChild(d);
             });
         }
 
-        function jumpTo(u) {
-            playSound('jump');
-            const step = document.getElementById('step-'+u);
-            const kodok = document.getElementById('kodok');
-            kodok.style.top = (step.offsetTop - 40) + "px";
-            kodok.style.left = (step.offsetLeft + 45) + "px";
-
-            if (u === soal.uTujuan) {
-                document.getElementById('hint').innerText = "📍 POSISI TEPAT! PILIH JAWABAN:";
-                showOptions();
-            } else {
-                document.getElementById('hint').innerText = "CARI TANGGA " + soal.uTujuan.toUpperCase() + "!";
-                document.getElementById('opsi-jawaban').innerHTML = "";
-            }
+        function jump(u) {
+            const s = document.getElementById('s-'+u);
+            const k = document.getElementById('kodok');
+            k.style.top = (s.offsetTop + 10) + "px";
+            k.style.left = (s.offsetLeft - 60) + "px";
+            if(u === soal.t) showOpsi();
         }
 
-        function mulaiNormal() {
+        function buatSoal() {
             const u = config[mode].units;
-            const i1 = Math.floor(Math.random() * u.length);
-            let i2 = Math.floor(Math.random() * u.length);
-            while(i1 === i2) i2 = Math.floor(Math.random() * u.length);
-            
-            const n = [1, 2, 5, 10, 20, 50, 100][Math.floor(Math.random()*7)];
-            setSoal(n, u[i1], u[i2]);
+            const i1 = 0, i2 = 2; // Contoh sederhana
+            const ans = 100;
+            soal = { f: u[i1], t: u[i2], ans };
+            document.getElementById('soal').innerText = `1 ${u[i1].toUpperCase()} = ... ${u[i2].toUpperCase()}`;
+            jump(u[i1]);
         }
 
-        function setSoal(n, f, t) {
-            const u = config[mode].units;
-            const ans = n * Math.pow(config[mode].power, u.indexOf(t) - u.indexOf(f));
-            soal = { uAwal: f, uTujuan: t, nAwal: n, jawaban: ans };
-            
-            document.getElementById('teks-soal').innerHTML = `${nAwal.toLocaleString('id-ID')} ${f.toUpperCase()} = <br>... ${t.toUpperCase()}?`;
-            document.getElementById('opsi-jawaban').innerHTML = "";
-            jumpTo(f);
-            document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-            document.getElementById('step-'+f).classList.add('active');
-        }
-
-        function showOptions() {
-            const area = document.getElementById('opsi-jawaban');
-            area.innerHTML = "";
-            let pils = [soal.jawaban];
-            while(pils.length < 3) {
-                let s = soal.jawaban * [10, 100, 0.1, 0.01][Math.floor(Math.random()*4)];
-                if(!pils.includes(s) && s > 0) pils.push(s);
-            }
-            pils.sort(() => Math.random() - 0.5);
-
-            pils.forEach(p => {
+        function showOpsi() {
+            const p = document.getElementById('pilihan'); p.innerHTML = "";
+            [100, 10, 1000].forEach(n => {
                 const b = document.createElement('button');
-                b.className = "bg-white/5 border border-white/10 p-4 rounded-2xl font-black hover:bg-yellow-400 hover:text-black transition-all text-xl";
-                b.innerText = p.toLocaleString('id-ID');
-                b.onclick = () => cek(p, b);
-                area.appendChild(b);
+                b.className = "bg-white text-blue-900 py-3 rounded-xl font-bold hover:bg-yellow-400";
+                b.innerText = n;
+                b.onclick = () => { if(n === 100) alert("Benar!"); else alert("Coba lagi!"); buatSoal(); };
+                p.appendChild(b);
             });
         }
 
-        function cek(p, b) {
-            if (p === soal.jawaban) {
-                playSound('correct');
-                skor += 10;
-                createConfetti();
-                b.classList.add('bg-emerald-600', 'border-emerald-400');
-                setTimeout(mulaiNormal, 1000);
-            } else {
-                playSound('wrong');
-                skor = Math.max(0, skor - 5);
-                document.getElementById('game-body').classList.add('shake');
-                setTimeout(() => document.getElementById('game-body').classList.remove('shake'), 300);
-                b.classList.add('bg-red-600', 'border-red-400');
-            }
-            document.getElementById('skor').innerText = skor;
-        }
-
-        // --- EFEK VISUAL Confetti Permata ---
-        function createConfetti() {
-            const colors = [config[mode].glow, '#ffffff', '#fef08a'];
-            for(let i=0; i<30; i++) {
-                const p = document.createElement('div');
-                p.className = 'particle';
-                p.style.left = Math.random() * 100 + 'vw';
-                p.style.top = Math.random() * -20 + 'vh';
-                p.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
-                p.style.boxShadow = `0 0 10px ${p.style.backgroundColor}`;
-                p.style.animation = `fall ${Math.random() * 2 + 1.5}s ease-out forwards`;
-                document.body.appendChild(p);
-                setTimeout(() => p.remove(), 3500);
-            }
-        }
-
-        // --- MENU CUSTOM ---
-        function switchTab(t) {
-            document.getElementById('question-area').style.display = (t === 'play') ? 'block' : 'none';
-            document.getElementById('custom-form').style.display = (t === 'custom') ? 'block' : 'none';
-        }
-
-        function updateSelects() {
-            const f = document.getElementById('c-from');
+        setMode('panjang');
+    </script>
+</body>
+</html>
