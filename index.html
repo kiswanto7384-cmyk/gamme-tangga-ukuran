@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Petualangan Tangga Ukuran - SDN 169</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #ecf0f1; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .tangga-container { position: relative; width: 300px; margin: 20px auto; }
+        .anak-tangga { 
+            width: 100%; height: 50px; background: #34495e; color: white; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: bold; border-radius: 10px; margin-bottom: 10px; 
+            cursor: pointer; transition: all 0.3s; position: relative;
+        }
+        .anak-tangga:hover { background: #2c3e50; transform: scale(1.05); }
+        .anak-tangga.active { background: #27ae60; border: 4px solid #f1c40f; }
+        
+        #kodok { 
+            font-size: 35px; position: absolute; left: -50px; 
+            transition: all 0.5s ease-in-out; z-index: 10;
+        }
+        .correct { background-color: #2ecc71 !important; color: white; animation: pulse 0.5s; }
+        .wrong { background-color: #e74c3c !important; color: white; animation: shake 0.5s; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes shake { 0% { margin-left: 0rem; } 25% { margin-left: 0.5rem; } 75% { margin-left: -0.5rem; } 100% { margin-left: 0rem; } }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-3xl shadow-xl text-center border-b-4 border-indigo-600">
+        <h1 class="text-2xl font-black text-indigo-900 uppercase tracking-wider">🐸 KODOK LOMPAT UKURAN</h1>
+        <p class="text-xs text-slate-500 font-bold mt-1">Bantu Kodok belajar konversi satuan panjang!</p>
+        <div class="flex justify-between items-center mt-4 bg-slate-100 p-3 rounded-xl border border-slate-200">
+            <span class="text-sm font-bold text-slate-600">SKOR: <span id="skor" class="text-xl text-emerald-600 font-black">0</span></span>
+            <span class="text-sm font-bold text-slate-600">SOAL: <span id="no-soal" class="text-lg text-indigo-600 font-black">1/10</span></span>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto mt-6">
+        
+        <div class="bg-white p-6 rounded-3xl shadow-lg border border-slate-100 relative">
+            <h2 class="text-center font-bold text-slate-400 text-xs mb-6 uppercase tracking-widest">Klik Tangga Tujuan Lompatan</h2>
+            <div class="tangga-container">
+                <div id="kodok">🐸</div>
+                <div class="anak-tangga" data-unit="km" style="margin-left: 0px">KM (Kilometer)</div>
+                <div class="anak-tangga" data-unit="hm" style="margin-left: 20px">HM (Hektometer)</div>
+                <div class="anak-tangga" data-unit="dam" style="margin-left: 40px">DAM (Dekameter)</div>
+                <div class="anak-tangga" data-unit="m" style="margin-left: 60px">M (Meter)</div>
+                <div class="anak-tangga" data-unit="dm" style="margin-left: 80px">DM (Desimeter)</div>
+                <div class="anak-tangga" data-unit="cm" style="margin-left: 100px">CM (Centimeter)</div>
+                <div class="anak-tangga" data-unit="mm" style="margin-left: 120px">MM (Millimeter)</div>
+            </div>
+        </div>
+
+        <div class="bg-indigo-900 p-8 rounded-3xl shadow-2xl text-white border-b-4 border-yellow-400 flex flex-col justify-center">
+            <div id="game-over-area" class="hidden text-center p-6">
+                <h1 class="text-5xl font-black text-yellow-400">GAME OVER!</h1>
+                <p class="text-xl mt-4">Total Skor Kamu: <span id="final-skor" class="font-bold text-3xl">0</span></p>
+                <button onclick="mulaiGame()" class="mt-8 bg-emerald-500 text-white font-bold py-3 px-8 rounded-full shadow-lg hover:bg-emerald-600 transition-all text-sm uppercase tracking-wider">Main Lagi 🔄</button>
+            </div>
+
+            <div id="question-area">
+                <p class="text-xs font-bold opacity-70 uppercase tracking-widest">Pertanyaan:</p>
+                <h3 id="teks-soal" class="text-3xl font-black mt-2 mb-8 text-yellow-300 italic">Memuat soal...</h3>
+                
+                <p class="text-xs font-bold opacity-70 uppercase tracking-widest mb-3">Pilih Jawaban yang Benar:</p>
+                <div id="opsi-jawaban" class="grid grid-cols-2 gap-4">
+                    </div>
+                <p id="petunjuk" class="text-center text-xs mt-6 text-indigo-300 font-bold italic animate-pulse">Klik tangga tujuan kodok dulu!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const units = ['km', 'hm', 'dam', 'm', 'dm', 'cm', 'mm'];
+        const unitNames = { km: 'Kilometer', hm: 'Hektometer', dam: 'Dekameter', m: 'Meter', dm: 'Desimeter', cm: 'Centimeter', mm: 'Millimeter' };
+        
+        let currentSkor = 0;
+        let currentNoSoal = 1;
+        let totalSoal = 10;
+        let soalAktif = {};
+        let tanggaTujuanDiklik = false;
+
+        // Inisialisasi Game
+        function mulaiGame() {
+            currentSkor = 0;
+            currentNoSoal = 1;
+            tanggaTujuanDiklik = false;
+            document.getElementById('skor').innerText = currentSkor;
+            document.getElementById('game-over-area').classList.add('hidden');
+            document.getElementById('question-area').classList.remove('hidden');
+            buatSoal();
+            moveKodok('m'); // Kodok mulai dari Meter
+        }
+
+        // Fungsi Membuat Soal Acak
+        function buatSoal() {
+            tanggaTujuanDiklik = false;
+            document.getElementById('no-soal').innerText = `${currentNoSoal}/${totalSoal}`;
+            document.getElementById('petunjuk').classList.remove('hidden');
+            document.getElementById('opsi-jawaban').innerHTML = ''; // Kosongkan jawaban
+
+            const idxAwal = Math.floor(Math.random() * units.length);
+            let idxTujuan = Math.floor(Math.random() * units.length);
+            while (idxTujuan === idxAwal) { idxTujuan = Math.floor(Math.random() * units.length); }
+
+            const unitAwal = units[idxAwal];
+            const unitTujuan = units[idxTujuan];
+            const nilaiAwal = Math.floor(Math.random() * 10) + 1; // Nilai 1-10
+
+            // Hitung Jawaban Benar
+            const selisih = idxTujuan - idxAwal;
+            const jawabanBenar = nilaiAwal * Math.pow(10, selisih);
+
+            soalAktif = { unitAwal, unitTujuan, nilaiAwal, jawabanBenar };
+
+            // Tampilkan Soal
+            document.getElementById('teks-soal').innerText = `${nilaiAwal} ${unitAwal.toUpperCase()} = ... ${unitTujuan.toUpperCase()}?`;
+            
+            // Atur Tangga Aktif (Posisi Kodok Sekarang)
+            document.querySelectorAll('.anak-tangga').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-unit="${unitAwal}"]`).classList.add('active');
+            moveKodok(unitAwal);
+        }
+
+        // Fungsi Menggerakkan Kodok 🐸
+        function moveKodok(unit) {
+            const tanggaObj = document.querySelector(`[data-unit="${unit}"]`);
+            const kodokObj = document.getElementById('kodok');
+            if (tanggaObj && kodokObj) {
+                // Hitung posisi Top berdasarkan margin anak tangga
+                kodokObj.style.top = (tanggaObj.offsetTop + 5) + 'px';
+                kodokObj.style.left = (tanggaObj.offsetLeft - 50) + 'px';
+            }
+        }
+
+        // Event Listener saat Tangga Diklik
+        document.querySelectorAll('.anak-tangga').forEach(tangga => {
+            tangga.addEventListener('click', function() {
+                const unitKlik = this.getAttribute('data-unit');
+                moveKodok(unitKlik);
+
+                if (unitKlik === soalAktif.unitTujuan) {
+                    // Kodok melompat ke tangga yang BENAR
+                    tanggaTujuanDiklik = true;
+                    document.getElementById('petunjuk').classList.add('hidden');
+                    this.classList.add('correct');
+                    setTimeout(() => this.classList.remove('correct'), 500);
+                    tampilkanPilihanJawaban();
+                } else {
+                    // Kodok melompat ke tangga yang SALAH
+                    this.classList.add('wrong');
+                    setTimeout(() => this.classList.remove('wrong'), 500);
+                    tanggaTujuanDiklik = false;
+                    document.getElementById('petunjuk').innerText = `Salah lompat! Lompat ke ${soalAktif.unitTujuan.toUpperCase()} dulu.`;
+                    document.getElementById('petunjuk').classList.remove('text-indigo-300');
+                    document.getElementById('petunjuk').classList.add('text-red-400');
+                    document.getElementById('opsi-jawaban').innerHTML = ''; // Sembunyikan jawaban
+                }
+            });
+        });
+
+        // Fungsi Menampilkan Pilihan Jawaban (Hanya jika kodok di tangga yang benar)
+        function tampilkanPilihanJawaban() {
+            if (!tanggaTujuanDiklik) return;
+
+            const opsiArea = document.getElementById('opsi-jawaban');
+            opsiArea.innerHTML = ''; // Bersihkan
+
+            // Buat 4 Pilihan Jawaban
+            const pilihan = [soalAktif.jawabanBenar];
+            while (pilihan.length < 4) {
+                // Buat jawaban salah acak (bisa dikali/dibagi 10, 100, dll)
+                const acakPow = Math.floor(Math.random() * 5) - 2; // -2 sampai 2
+                const salahAcak = soalAktif.nilaiAwal * Math.pow(10, acakPow);
+                if (!pilihan.includes(salahAcak) && salahAcak > 0) {
+                    pilihan.push(salahAcak);
+                }
+            }
+            // Acak urutan pilihan
+            pilihan.sort(() => Math.random() - 0.5);
+
+            // Buat Tombol
+            pilihan.forEach(p => {
+                const btn = document.createElement('button');
+                btn.innerText = p.toLocaleString('id-ID'); // Format angka Indonesia
+                btn.className = "bg-white text-indigo-900 font-black py-4 rounded-2xl shadow-md hover:bg-yellow-300 transition-all text-xl border-b-4 border-slate-200 hover:border-yellow-500";
+                btn.onclick = () => cekJawaban(p, btn);
+                opsiArea.appendChild(btn);
+            });
+        }
+
+        // Fungsi Cek Jawaban Akhir
+        function cekJawaban(jawabanDipilih, tombolObj) {
+            if (jawabanDipilih === soalAktif.jawabanBenar) {
+                // BENAR!
+                currentSkor += 10;
+                document.getElementById('skor').innerText = currentSkor;
+                tombolObj.classList.remove('bg-white', 'text-indigo-900');
+                tombolObj.classList.add('correct');
+                
+                setTimeout(nextSoal, 800);
+            } else {
+                // SALAH!
+                currentSkor -= 5;
+                if (currentSkor < 0) currentSkor = 0;
+                document.getElementById('skor').innerText = currentSkor;
+                tombolObj.classList.remove('bg-white', 'text-indigo-900');
+                tombolObj.classList.add('wrong');
+                
+                // Tunjukkan jawaban yang benar
+                document.querySelectorAll('#opsi-jawaban button').forEach(btn => {
+                    if (parseFloat(btn.innerText.replace(/\./g, '')) === soalAktif.jawabanBenar) {
+                        btn.classList.add('correct');
+                    }
+                });
+                setTimeout(nextSoal, 1500);
+            }
+        }
+
+        function nextSoal() {
+            if (currentNoSoal < totalSoal) {
+                currentNoSoal++;
+                buatSoal();
+            } else {
+                // Game Selesai
+                document.getElementById('question-area').classList.add('hidden');
+                document.getElementById('game-over-area').classList.remove('hidden');
+                document.getElementById('final-skor').innerText = currentSkor;
+            }
+        }
+
+        // Mulai Game saat halaman dimuat
+        window.onload = mulaiGame;
+    </script>
+</body>
+</html>
