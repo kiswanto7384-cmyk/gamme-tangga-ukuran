@@ -2,93 +2,123 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tangga Pintar SDN 169</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background: linear-gradient(to bottom, #bae6fd, #e0f2fe); min-height: 100vh; font-family: sans-serif; }
+        body { background: linear-gradient(to bottom, #7dd3fc, #f0f9ff); min-height: 100vh; font-family: sans-serif; overflow-x: hidden; }
+        .grass { position: fixed; bottom: 0; width: 100%; height: 100px; background: #22c55e; border-top: 10px solid #16a34a; z-index: -1; }
         .step { 
-            background: white; border: 3px solid #3b82f6; color: #1e3a8a;
-            width: 180px; height: 50px; display: flex; align-items: center; justify-content: center;
-            font-weight: 900; border-radius: 12px; margin-bottom: 15px; cursor: pointer;
-            box-shadow: 0 8px 0 #1e40af; transform: rotateX(15deg);
+            width: 160px; height: 45px; background: white; color: #1e293b;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; border-radius: 10px; position: relative;
+            transform: rotateX(20deg) rotateY(-10deg);
+            box-shadow: -8px 8px 0 #cbd5e1, 0 10px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s; cursor: pointer; border: 2px solid #94a3b8;
         }
-        .step:hover { background: #eff6ff; }
-        .step.active { background: #fbbf24; border-color: #b45309; }
-        #kodok { position: absolute; font-size: 50px; transition: all 0.5s; z-index: 10; }
+        .step:hover { transform: scale(1.05) translate(5px, -5px); background: #f8fafc; }
+        .step.active { background: #fbbf24; border-color: #d97706; box-shadow: -8px 8px 0 #b45309; }
+        #kodok { font-size: 45px; position: absolute; z-index: 50; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .shake { animation: shake 0.3s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
     </style>
 </head>
-<body class="p-6">
-    <div class="max-w-4xl mx-auto bg-white p-8 rounded-3xl shadow-2xl border-4 border-blue-200">
-        <h1 class="text-3xl font-black text-blue-900 text-center mb-6">🐸 TANGGA PINTAR SDN 169</h1>
-        
-        <div class="flex gap-4 justify-center mb-10">
-            <button onclick="setMode('panjang')" class="bg-sky-500 text-white px-6 py-2 rounded-full font-bold">📏 Panjang</button>
-            <button onclick="setMode('berat')" class="bg-green-500 text-white px-6 py-2 rounded-full font-bold">⚖️ Berat</button>
+<body class="p-4" id="main-body">
+    <div class="grass"></div>
+    <div class="max-w-5xl mx-auto bg-white/80 backdrop-blur p-6 rounded-3xl shadow-xl border-4 border-white mb-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-black text-blue-900">🐸 TANGGA PINTAR SIANG</h1>
+            <div class="bg-blue-600 text-white px-6 py-2 rounded-2xl font-bold">SKOR: <span id="skor">0</span></div>
         </div>
+        <div class="flex gap-2 mt-4 overflow-x-auto pb-2">
+            <button onclick="setMode('panjang')" class="bg-blue-100 px-4 py-2 rounded-xl font-bold text-xs">📏 PANJANG</button>
+            <button onclick="setMode('berat')" class="bg-green-100 px-4 py-2 rounded-xl font-bold text-xs">⚖️ BERAT</button>
+            <button onclick="setMode('luas')" class="bg-orange-100 px-4 py-2 rounded-xl font-bold text-xs">🟦 LUAS</button>
+            <button onclick="setMode('volume')" class="bg-purple-100 px-4 py-2 rounded-xl font-bold text-xs">📦 VOLUME</button>
+        </div>
+    </div>
 
-        <div class="flex gap-10 justify-center">
-            <div id="game-area" class="relative">
-                <div id="kodok">🐸</div>
-                <div id="steps"></div>
-            </div>
-            <div class="bg-blue-900 p-8 rounded-3xl text-white w-80">
-                <h2 id="soal" class="text-2xl font-bold mb-6">Memuat...</h2>
-                <div id="pilihan" class="grid grid-cols-1 gap-3"></div>
-            </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+        <div class="relative min-h-[500px]" id="area-tangga">
+            <div id="kodok">🐸</div>
+            <div id="list-tangga" class="mt-10"></div>
+        </div>
+        <div class="bg-blue-900 p-8 rounded-[2rem] text-white shadow-2xl flex flex-col justify-center border-b-8 border-blue-950">
+            <p class="text-blue-300 font-bold text-xs uppercase mb-2">Soal:</p>
+            <h2 id="teks-soal" class="text-3xl font-black text-yellow-300 italic mb-8">Memuat...</h2>
+            <div id="opsi" class="grid gap-3"></div>
+            <p id="msg" class="text-center mt-6 text-xs font-bold text-blue-200 animate-pulse">LOMPAT KE TANGGA TUJUAN!</p>
         </div>
     </div>
 
     <script>
         const config = {
             panjang: { units: ['km','hm','dam','m','dm','cm','mm'], p: 10 },
-            berat: { units: ['kg','hg','dag','g','dg','cg','mg'], p: 10 }
+            berat: { units: ['kg','hg','dag','g','dg','cg','mg'], p: 10 },
+            luas: { units: ['km²','hm²','dam²','m²','dm²','cm²','mm²'], p: 100 },
+            volume: { units: ['km³','hm³','dam³','m³','dm³','cm³','mm³'], p: 1000 }
         };
-        let mode = 'panjang', soal = {};
+        let mode = 'panjang', skor = 0, soal = {};
+        const audio = new (window.AudioContext || window.webkitAudioContext)();
 
-        function setMode(m) {
-            mode = m; renderSteps(); buatSoal();
+        function play(f, t=0.1) {
+            const o = audio.createOscillator(); const g = audio.createGain();
+            o.connect(g); g.connect(audio.destination);
+            o.frequency.setValueAtTime(f, audio.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, audio.currentTime + t);
+            o.start(); o.stop(audio.currentTime + t);
         }
 
-        function renderSteps() {
-            const container = document.getElementById('steps');
-            container.innerHTML = "";
+        function setMode(m) { mode = m; render(); buatSoal(); }
+
+        function render() {
+            const list = document.getElementById('list-tangga');
+            list.innerHTML = "";
             config[mode].units.forEach((u, i) => {
                 const d = document.createElement('div');
-                d.className = 'step'; d.id = 's-' + u; d.innerText = u.toUpperCase();
+                d.className = 'step'; d.style.marginLeft = (i * 35) + "px";
+                d.id = 's-' + u; d.innerText = u.toUpperCase();
                 d.onclick = () => jump(u);
-                container.appendChild(d);
+                list.appendChild(d);
             });
         }
 
         function jump(u) {
+            play(400);
             const s = document.getElementById('s-'+u);
             const k = document.getElementById('kodok');
-            k.style.top = (s.offsetTop + 10) + "px";
-            k.style.left = (s.offsetLeft - 60) + "px";
-            if(u === soal.t) showOpsi();
+            k.style.top = (s.offsetTop - 35) + "px";
+            k.style.left = (s.offsetLeft + 40) + "px";
+            if(u === soal.t) { document.getElementById('msg').innerText = "BENAR! PILIH NILAINYA:"; showOpsi(); }
+            else { document.getElementById('msg').innerText = "CARI " + soal.t.toUpperCase(); document.getElementById('opsi').innerHTML = ""; }
         }
 
         function buatSoal() {
             const u = config[mode].units;
-            const i1 = 0, i2 = 2; // Contoh sederhana
-            const ans = 100;
+            const i1 = Math.floor(Math.random()*u.length), i2 = (i1+1)%u.length;
+            const n = [1, 2, 5, 10][Math.floor(Math.random()*4)];
+            const ans = n * Math.pow(config[mode].p, i2 - i1);
             soal = { f: u[i1], t: u[i2], ans };
-            document.getElementById('soal').innerText = `1 ${u[i1].toUpperCase()} = ... ${u[i2].toUpperCase()}`;
+            document.getElementById('teks-soal').innerHTML = `${n} ${u[i1].toUpperCase()} = ... ${u[i2].toUpperCase()}?`;
+            document.getElementById('opsi').innerHTML = "";
             jump(u[i1]);
         }
 
         function showOpsi() {
-            const p = document.getElementById('pilihan'); p.innerHTML = "";
-            [100, 10, 1000].forEach(n => {
+            const area = document.getElementById('opsi'); area.innerHTML = "";
+            [soal.ans, soal.ans*10, soal.ans/10].sort(()=>Math.random()-0.5).forEach(p => {
                 const b = document.createElement('button');
-                b.className = "bg-white text-blue-900 py-3 rounded-xl font-bold hover:bg-yellow-400";
-                b.innerText = n;
-                b.onclick = () => { if(n === 100) alert("Benar!"); else alert("Coba lagi!"); buatSoal(); };
-                p.appendChild(b);
+                b.className = "bg-white text-blue-900 p-4 rounded-xl font-bold hover:bg-yellow-400";
+                b.innerText = p.toLocaleString('id-ID');
+                b.onclick = () => {
+                    if(p === soal.ans) { play(800); skor += 10; buatSoal(); }
+                    else { play(100, 0.3); document.getElementById('main-body').classList.add('shake'); setTimeout(()=>document.getElementById('main-body').classList.remove('shake'), 300); }
+                    document.getElementById('skor').innerText = skor;
+                };
+                area.appendChild(b);
             });
         }
-
-        setMode('panjang');
+        window.onload = () => setMode('panjang');
     </script>
 </body>
 </html>
